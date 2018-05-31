@@ -5,18 +5,27 @@
 		 id="WebApp_ID" 
 		 version="3.0">
  
- <servlet>
-    <servlet-name>Jersey REST Service</servlet-name>
-    <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>     
-    <init-param>
-        <param-name>jersey.config.server.provider.packages</param-name>
-        <param-value>br.com.naodeixesobrar.controller</param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
- </servlet>
- <servlet-mapping>
-    <servlet-name>Jersey REST Service</servlet-name>
-    <url-pattern>/rest/*</url-pattern>
- </servlet-mapping>
+	<servlet>
+	   <servlet-name>Jersey REST Service</servlet-name>
+	   <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>     
+	   <init-param>
+	       <param-name>jersey.config.server.provider.packages</param-name>
+	       <param-value>br.com.naodeixesobrar.controller</param-value>
+	   </init-param>
+	   <load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+	   <servlet-name>Jersey REST Service</servlet-name>
+	   <url-pattern>/rest/*</url-pattern>
+	</servlet-mapping>
  
+	<filter>
+	    <filter-name>jwtFilter</filter-name>
+	    <filter-class>br.com.naodeixesobrar.filter.JWTFilter</filter-class>
+	</filter>
+	
+	<filter-mapping>
+	    <filter-name>jwtFilter</filter-name>
+	    <url-pattern>/rest/*</url-pattern>
+	</filter-mapping> 
 </web-app>

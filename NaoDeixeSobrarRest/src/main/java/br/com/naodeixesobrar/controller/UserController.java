@@ -12,10 +12,11 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
 
 import br.com.naodeixesobrar.api.UserApi;
 import br.com.naodeixesobrar.entity.UserEntity;
+import br.com.naodeixesobrar.jwt.JWTUtil;
 import br.com.naodeixesobrar.repository.UserRepository;
  
  
@@ -80,7 +81,7 @@ public class UserController {
 		List<UserApi> users =  new ArrayList<UserApi>();
 		List<UserEntity> listEntityUsers = repository.all();
 		for (UserEntity entity : listEntityUsers) {
-			users.add(new UserApi(entity.getId(), entity.getUsername(),entity.getPassword()));
+			users.add(new UserApi(entity.getId(), entity.getUsername(),entity.getPassword(),""));
 		}
 		return users;
 	}
@@ -94,7 +95,7 @@ public class UserController {
 	public UserApi getUser(@PathParam("id") Integer id){
 		UserEntity entity = repository.getUser(id);
 		if(entity != null)
-			return new UserApi(entity.getId(), entity.getUsername(),entity.getPassword());
+			return new UserApi(entity.getId(), entity.getUsername(),entity.getPassword(), "");
 		return null;
 	}
  
@@ -116,19 +117,27 @@ public class UserController {
 	/**
 	 * Login validate
 	 * */
-	@GET
-	@Produces("application/text; charset=UTF-8")
+	@POST
+	@Produces("application/json; charset=UTF-8")
 	@Path("/login")	
-	public String login(@QueryParam("username") String username, 
-			@QueryParam("password") String password){
-		try {
-			if (repository.login(username, password) != null)
+	public Response login(UserApi user){
+	    if(repository.login(user.getUsername(), user.getPassword()) != null){
+	        String token = JWTUtil.create(user.getUsername());
+	        UserApi usuarioLogado = new UserApi();
+	        usuarioLogado.setUsername(user.getUsername());
+	        usuarioLogado.setToken(token);
+	        return Response.ok().entity(usuarioLogado).build();
+	    }else{
+	        return Response.status(Response.Status.UNAUTHORIZED).build();
+	    }
+		/*try {
+			if (repository.login(user.getUsername(), user.getPassword()) != null)
 				return "Login realizado com sucesso.";
 			else
 				return "Usuário e/ou senha inválidos.";
 		} catch (Exception e) {
 			return "Erro ao validar o login: " + e.getMessage();
-		}
+		}*/
 	}
 	
 }

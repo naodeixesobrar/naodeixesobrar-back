@@ -9,16 +9,18 @@ public class UserApi {
 	private int id;
 	private String username;
 	private String password;
+	private String token;
  
 	public UserApi(){
  
 	}
  
-	public UserApi(int id, String username, String password) {
+	public UserApi(int id, String username, String password, String token) {
 		super();
 		this.id = id;
 		this.username = username;
 		this.password = password;
+		this.token = token;
 	}
 
 	public int getId() {
@@ -43,6 +45,14 @@ public class UserApi {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getToken() {
+		return token;
+	}
+
+	public void setToken(String token) {
+		this.token = token;
 	}
  
 }
