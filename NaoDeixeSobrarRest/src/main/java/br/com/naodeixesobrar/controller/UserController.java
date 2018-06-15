@@ -124,20 +124,13 @@ public class UserController {
 	    if(repository.login(user.getUsername(), user.getPassword()) != null){
 	        String token = JWTUtil.create(user.getUsername());
 	        UserApi usuarioLogado = new UserApi();
+	        usuarioLogado.setId(-999);
 	        usuarioLogado.setUsername(user.getUsername());
 	        usuarioLogado.setToken(token);
 	        return Response.ok().entity(usuarioLogado).build();
 	    }else{
 	        return Response.status(Response.Status.UNAUTHORIZED).build();
 	    }
-		/*try {
-			if (repository.login(user.getUsername(), user.getPassword()) != null)
-				return "Login realizado com sucesso.";
-			else
-				return "Usuário e/ou senha inválidos.";
-		} catch (Exception e) {
-			return "Erro ao validar o login: " + e.getMessage();
-		}*/
 	}
 	
 }
