@@ -2,6 +2,7 @@ package br.com.naodeixesobrar.filter;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 
 import javax.servlet.*;
@@ -17,7 +18,7 @@ public class JWTFilter implements Filter{
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {}
 
-    @Override
+	@Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) servletRequest;
         HttpServletResponse res = (HttpServletResponse) servletResponse;
@@ -38,6 +39,8 @@ public class JWTFilter implements Filter{
             Jws<Claims> parser = JWTUtil.decode(token);
             System.out.println("User request: "+ parser.getBody().getSubject());
             filterChain.doFilter(servletRequest, servletResponse);
+        } catch (MalformedJwtException j) {
+            res.setStatus(401);
         } catch (SignatureException e) {
             res.setStatus(401);
         }

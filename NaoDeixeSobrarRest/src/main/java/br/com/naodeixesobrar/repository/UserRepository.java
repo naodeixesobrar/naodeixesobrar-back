@@ -44,12 +44,15 @@ public class UserRepository {
 		return this.entityManager.find(UserEntity.class, id);
 	}
  
-	public void remove(Integer id){
+	public void remove(Integer id) throws Exception{
 		UserEntity user = this.getUser(id);
- 
-		this.entityManager.getTransaction().begin();
-		this.entityManager.remove(user);
-		this.entityManager.getTransaction().commit();
+		if (user != null) {
+			this.entityManager.getTransaction().begin();
+			this.entityManager.remove(user);
+			this.entityManager.getTransaction().commit();
+		} else {
+			throw new Exception("código não encontrado");
+		}
 	}
 	
 

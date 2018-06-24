@@ -18,6 +18,7 @@ import br.com.naodeixesobrar.api.UserApi;
 import br.com.naodeixesobrar.entity.UserEntity;
 import br.com.naodeixesobrar.jwt.JWTUtil;
 import br.com.naodeixesobrar.repository.UserRepository;
+import br.com.naodeixesobrar.util.JsonUtil;
  
  
 /**
@@ -45,9 +46,9 @@ public class UserController {
 			entity.setUsername(user.getUsername());
 			entity.setPassword(user.getPassword());
 			repository.save(entity);
-			return "Registro cadastrado com sucesso!";
+			return JsonUtil.getJsonMessageReturn("Usuário cadastrado com sucesso!");
 		} catch (Exception e) {
-			return "Erro ao cadastrar um registro " + e.getMessage();
+			return JsonUtil.getJsonMessageReturn("Erro ao cadastrar o usuário: " + e.getMessage());
 		}
 	}
  
@@ -61,13 +62,13 @@ public class UserController {
 		UserEntity entity = repository.getUser(user.getId());
 		try {
 			if (entity == null)
-				return "Usuário não encontrado";
+				return JsonUtil.getJsonMessageReturn("Usuário não encontrado");
 			entity.setUsername(user.getUsername());
 			entity.setPassword(user.getPassword());
 			repository.edit(entity);
-			return "Registro alterado com sucesso!";
+			return JsonUtil.getJsonMessageReturn("Usuário alterado com sucesso!");
 		} catch (Exception e) {
-			return "Erro ao alterar o registro " + e.getMessage();
+			return JsonUtil.getJsonMessageReturn("Erro ao alterar o usuário: " + e.getMessage());
 		}
 	}
 
@@ -108,9 +109,9 @@ public class UserController {
 	public String remove(@PathParam("id") Integer id){
 		try {
 			repository.remove(id);
-			return "Registro excluido com sucesso!";
+			return JsonUtil.getJsonMessageReturn("Usuário excluído com sucesso!");
 		} catch (Exception e) {
-			return "Erro ao excluir o registro! " + e.getMessage();
+			return JsonUtil.getJsonMessageReturn("Erro ao excluir o usuário: " + e.getMessage());
 		}
 	}
 
@@ -129,7 +130,8 @@ public class UserController {
 	        usuarioLogado.setToken(token);
 	        return Response.ok().entity(usuarioLogado).build();
 	    }else{
-	        return Response.status(Response.Status.UNAUTHORIZED).build();
+	        return Response.status(Response.Status.FORBIDDEN).entity(
+	        		JsonUtil.getJsonMessageReturn("Usuário e/ou Senha inválidos")).build();
 	    }
 	}
 	
