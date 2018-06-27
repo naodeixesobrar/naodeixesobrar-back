@@ -35,7 +35,7 @@ public class UserController {
 	 * @Consumes - determina o formato dos dados que vamos postar
 	 * @Produces - determina o formato dos dados que vamos retornar
 	 * 
-	 * Esse método cadastra uma nova pessoa
+	 * Esse método cadastra um novo usuário
 	 * */
 	@POST	
 	@Consumes("application/json; charset=UTF-8")
@@ -53,7 +53,7 @@ public class UserController {
 	}
  
 	/**
-	 * Essse método altera uma pessoa já cadastrada
+	 * Essse método altera um usuário já cadastrado
 	 * **/
 	@PUT
 	@Produces("application/text; charset=UTF-8")
@@ -73,7 +73,7 @@ public class UserController {
 	}
 
 	/**
-	 * Esse método lista todas pessoas cadastradas na base
+	 * Esse método lista todos os usuários cadastrados na base
 	 * */
 	@GET
 	@Produces("application/json; charset=UTF-8")
@@ -88,7 +88,7 @@ public class UserController {
 	}
  
 	/**
-	 * Esse método busca uma pessoa cadastrada pelo código
+	 * Esse método busca um usuário cadastrado pelo código
 	 * */
 	@GET
 	@Produces("application/json; charset=UTF-8")
@@ -101,7 +101,7 @@ public class UserController {
 	}
  
 	/**
-	 * Excluindo uma pessoa pelo código
+	 * Excluindo um usuário pelo código
 	 * */
 	@DELETE
 	@Produces("application/text; charset=UTF-8")
