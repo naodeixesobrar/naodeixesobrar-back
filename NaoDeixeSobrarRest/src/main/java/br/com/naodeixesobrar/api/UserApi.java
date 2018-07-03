@@ -23,6 +23,19 @@ public class UserApi {
 		this.token = token;
 	}
 
+	public UserApi(int id, String username, String token) {
+		super();
+		this.id = id;
+		this.username = username;
+		this.token = token;
+	}
+
+	public UserApi(int id, String username) {
+		super();
+		this.id = id;
+		this.username = username;
+	}
+
 	public int getId() {
 		return id;
 	}

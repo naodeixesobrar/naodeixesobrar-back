@@ -48,7 +48,7 @@ public class CompanyRepository {
 			this.entityManager.remove(company);
 			this.entityManager.getTransaction().commit();
 		} else {
-			throw new Exception("Código não encontrado");
+			throw new NullPointerException();
 		}
 	}
 	

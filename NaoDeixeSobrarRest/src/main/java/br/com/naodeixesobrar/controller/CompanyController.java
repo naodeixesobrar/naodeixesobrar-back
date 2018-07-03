@@ -12,6 +12,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
 
 import br.com.naodeixesobrar.api.CompanyApi;
 import br.com.naodeixesobrar.entity.CompanyEntity;
@@ -20,7 +21,7 @@ import br.com.naodeixesobrar.util.JsonUtil;
  
  
 /**
- * Essa classe vai expor os nossos métodos para serem acessasdos via http
+ * Essa classe vai expor os nossos métodos para serem acessados via http
  * 
  * @Path - Caminho para a chamada da classe que vai representar o nosso serviço
  * */
@@ -38,7 +39,7 @@ public class CompanyController {
 	@POST	
 	@Consumes("application/json; charset=UTF-8")
 	@Produces("application/text; charset=UTF-8")
-	public String insert(CompanyApi company){
+	public Response insert(CompanyApi company){
 		CompanyEntity entity = new CompanyEntity();
 		try {
 			entity.setName(company.getName());
@@ -54,9 +55,11 @@ public class CompanyController {
 			entity.setPhone(company.getPhone());
 
 			repository.save(entity);
-			return JsonUtil.getJsonMessageReturn("Empresa cadastrada com sucesso!");
+	        return Response.status(Response.Status.CREATED).entity(
+	        		JsonUtil.getJsonMessageReturn("Empresa cadastrada com sucesso")).build();
 		} catch (Exception e) {
-			return JsonUtil.getJsonMessageReturn("Erro ao cadastrar a empresa: " + e.getMessage());
+	        return Response.status(Response.Status.BAD_REQUEST).entity(
+	        		JsonUtil.getJsonMessageReturn("Erro ao cadastrar a empresa: " + e.getMessage())).build();
 		}
 	}
  
@@ -66,11 +69,12 @@ public class CompanyController {
 	@PUT
 	@Produces("application/text; charset=UTF-8")
 	@Consumes("application/json; charset=UTF-8")	
-	public String edit(CompanyApi company){
+	public Response edit(CompanyApi company){
 		CompanyEntity entity = repository.getCompany(company.getId());
 		try {
 			if (entity == null)
-				return JsonUtil.getJsonMessageReturn("Empresa não encontrada");
+		        return Response.status(Response.Status.NOT_FOUND).entity(
+		        		JsonUtil.getJsonMessageReturn("Empresa inexistente")).build();
 			entity.setName(company.getName());
 			entity.setCpfcnpj(company.getCpfcnpj());
 			entity.setZipcode(company.getZipcode());
@@ -84,9 +88,11 @@ public class CompanyController {
 			entity.setPhone(company.getPhone());
 
 			repository.edit(entity);
-			return JsonUtil.getJsonMessageReturn("Empresa alterada com sucesso!");
+	        return Response.status(Response.Status.OK).entity(
+	        		JsonUtil.getJsonMessageReturn("Empresa alterada com sucesso")).build();
 		} catch (Exception e) {
-			return JsonUtil.getJsonMessageReturn("Erro ao alterar a empresa: " + e.getMessage());
+	        return Response.status(Response.Status.BAD_REQUEST).entity(
+	        		JsonUtil.getJsonMessageReturn("Erro ao alterar o empresa: " + e.getMessage())).build();
 		}
 	}
 
@@ -112,14 +118,17 @@ public class CompanyController {
 	 * */
 	@GET
 	@Produces("application/json; charset=UTF-8")
-	@Path("/getCompany/{id}")
-	public CompanyApi getCompany(@PathParam("id") Integer id){
+	@Path("/{id}")
+	public Response getCompany(@PathParam("id") Integer id){
 		CompanyEntity entity = repository.getCompany(id);
-		if(entity != null)
-			return new CompanyApi(entity.getId(), entity.getName(),entity.getCpfcnpj(),entity.getZipcode(),
+		if(entity != null) {
+	        return Response.ok().entity(new CompanyApi(entity.getId(), entity.getName(),entity.getCpfcnpj(),entity.getZipcode(),
 					entity.getAdress(), entity.getNumberadress(), entity.getComplement(), entity.getDistrict(),
-					entity.getCity(), entity.getUrl(), entity.getEmail(), entity.getPhone());
-		return null;
+					entity.getCity(), entity.getUrl(), entity.getEmail(), entity.getPhone())).build();
+		} else {
+	        return Response.status(Response.Status.NOT_FOUND).entity(
+	        		JsonUtil.getJsonMessageReturn("Código de empresa inexistente")).build();
+		}
 	}
  
 	/**
@@ -128,12 +137,17 @@ public class CompanyController {
 	@DELETE
 	@Produces("application/text; charset=UTF-8")
 	@Path("/{id}")	
-	public String remove(@PathParam("id") Integer id){
+	public Response remove(@PathParam("id") Integer id){
 		try {
 			repository.remove(id);
-			return JsonUtil.getJsonMessageReturn("Empresa excluída com sucesso!");
+	        return Response.status(Response.Status.OK).entity(
+	        		JsonUtil.getJsonMessageReturn("Empresa excluída com sucesso")).build();
+		} catch (NullPointerException e) {
+	        return Response.status(Response.Status.NOT_FOUND).entity(
+	        		JsonUtil.getJsonMessageReturn("Empresa inexistente")).build();
 		} catch (Exception e) {
-			return JsonUtil.getJsonMessageReturn("Erro ao excluir a empresa: " + e.getMessage());
+	        return Response.status(Response.Status.BAD_REQUEST).entity(
+	        		JsonUtil.getJsonMessageReturn("Erro ao excluir a empresa: " + e.getMessage())).build();
 		}
 	}
 

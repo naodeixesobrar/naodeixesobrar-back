@@ -1,6 +1,5 @@
 package br.com.naodeixesobrar.controller;
  
- 
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,9 +19,8 @@ import br.com.naodeixesobrar.jwt.JWTUtil;
 import br.com.naodeixesobrar.repository.UserRepository;
 import br.com.naodeixesobrar.util.JsonUtil;
  
- 
 /**
- * Essa classe vai expor os nossos métodos para serem acessasdos via http
+ * Essa classe vai expor os nossos métodos para serem acessados via http
  * 
  * @Path - Caminho para a chamada da classe que vai representar o nosso serviço
  * */
@@ -40,15 +38,17 @@ public class UserController {
 	@POST	
 	@Consumes("application/json; charset=UTF-8")
 	@Produces("application/text; charset=UTF-8")
-	public String insert(UserApi user){
+	public Response insert(UserApi user){
 		UserEntity entity = new UserEntity();
 		try {
 			entity.setUsername(user.getUsername());
 			entity.setPassword(user.getPassword());
 			repository.save(entity);
-			return JsonUtil.getJsonMessageReturn("Usuário cadastrado com sucesso!");
+	        return Response.status(Response.Status.CREATED).entity(
+	        		JsonUtil.getJsonMessageReturn("Usuário cadastrado com sucesso")).build();
 		} catch (Exception e) {
-			return JsonUtil.getJsonMessageReturn("Erro ao cadastrar o usuário: " + e.getMessage());
+	        return Response.status(Response.Status.BAD_REQUEST).entity(
+	        		JsonUtil.getJsonMessageReturn("Erro ao cadastrar o usuário: " + e.getMessage())).build();
 		}
 	}
  
@@ -58,17 +58,20 @@ public class UserController {
 	@PUT
 	@Produces("application/text; charset=UTF-8")
 	@Consumes("application/json; charset=UTF-8")	
-	public String edit(UserApi user){
+	public Response edit(UserApi user){
 		UserEntity entity = repository.getUser(user.getId());
 		try {
 			if (entity == null)
-				return JsonUtil.getJsonMessageReturn("Usuário não encontrado");
+		        return Response.status(Response.Status.NOT_FOUND).entity(
+		        		JsonUtil.getJsonMessageReturn("Usuário inexistente")).build();
 			entity.setUsername(user.getUsername());
 			entity.setPassword(user.getPassword());
 			repository.edit(entity);
-			return JsonUtil.getJsonMessageReturn("Usuário alterado com sucesso!");
+	        return Response.status(Response.Status.OK).entity(
+	        		JsonUtil.getJsonMessageReturn("Usuário alterado com sucesso")).build();
 		} catch (Exception e) {
-			return JsonUtil.getJsonMessageReturn("Erro ao alterar o usuário: " + e.getMessage());
+	        return Response.status(Response.Status.BAD_REQUEST).entity(
+	        		JsonUtil.getJsonMessageReturn("Erro ao alterar o usuário: " + e.getMessage())).build();
 		}
 	}
 
@@ -82,7 +85,7 @@ public class UserController {
 		List<UserApi> users =  new ArrayList<UserApi>();
 		List<UserEntity> listEntityUsers = repository.all();
 		for (UserEntity entity : listEntityUsers) {
-			users.add(new UserApi(entity.getId(), entity.getUsername(),entity.getPassword(),""));
+			users.add(new UserApi(entity.getId(), entity.getUsername()));
 		}
 		return users;
 	}
@@ -92,12 +95,15 @@ public class UserController {
 	 * */
 	@GET
 	@Produces("application/json; charset=UTF-8")
-	@Path("/getUser/{id}")
-	public UserApi getUser(@PathParam("id") Integer id){
+	@Path("/{id}")
+	public Response getUser(@PathParam("id") Integer id){
 		UserEntity entity = repository.getUser(id);
-		if(entity != null)
-			return new UserApi(entity.getId(), entity.getUsername(),entity.getPassword(), "");
-		return null;
+		if(entity != null) {
+	        return Response.ok().entity(new UserApi(entity.getId(), entity.getUsername())).build();
+		} else {
+	        return Response.status(Response.Status.NOT_FOUND).entity(
+	        		JsonUtil.getJsonMessageReturn("Código de usuário inexistente")).build();
+		}
 	}
  
 	/**
@@ -106,12 +112,17 @@ public class UserController {
 	@DELETE
 	@Produces("application/text; charset=UTF-8")
 	@Path("/{id}")	
-	public String remove(@PathParam("id") Integer id){
+	public Response remove(@PathParam("id") Integer id){
 		try {
 			repository.remove(id);
-			return JsonUtil.getJsonMessageReturn("Usuário excluído com sucesso!");
+	        return Response.status(Response.Status.OK).entity(
+	        		JsonUtil.getJsonMessageReturn("Usuário excluído com sucesso")).build();
+		} catch (NullPointerException e) {
+	        return Response.status(Response.Status.NOT_FOUND).entity(
+	        		JsonUtil.getJsonMessageReturn("Usuário inexistente")).build();
 		} catch (Exception e) {
-			return JsonUtil.getJsonMessageReturn("Erro ao excluir o usuário: " + e.getMessage());
+	        return Response.status(Response.Status.BAD_REQUEST).entity(
+	        		JsonUtil.getJsonMessageReturn("Erro ao excluir o usuário: " + e.getMessage())).build();
 		}
 	}
 
@@ -122,13 +133,13 @@ public class UserController {
 	@Produces("application/json; charset=UTF-8")
 	@Path("/login")	
 	public Response login(UserApi user){
-	    if(repository.login(user.getUsername(), user.getPassword()) != null){
+		UserEntity authenthicatedUser = repository.login(user.getUsername(), user.getPassword());
+	    if(authenthicatedUser != null){
 	        String token = JWTUtil.create(user.getUsername());
-	        UserApi usuarioLogado = new UserApi();
-	        usuarioLogado.setId(-999);
-	        usuarioLogado.setUsername(user.getUsername());
-	        usuarioLogado.setToken(token);
-	        return Response.ok().entity(usuarioLogado).build();
+	        UserApi userApi = new UserApi(authenthicatedUser.getId(),
+	        		authenthicatedUser.getUsername(),
+	        		token);
+	        return Response.ok().entity(userApi).build();
 	    }else{
 	        return Response.status(Response.Status.FORBIDDEN).entity(
 	        		JsonUtil.getJsonMessageReturn("Usuário e/ou Senha inválidos")).build();

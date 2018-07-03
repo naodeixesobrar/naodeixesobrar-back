@@ -51,7 +51,7 @@ public class UserRepository {
 			this.entityManager.remove(user);
 			this.entityManager.getTransaction().commit();
 		} else {
-			throw new Exception("Código não encontrado");
+			throw new NullPointerException();
 		}
 	}
 	
