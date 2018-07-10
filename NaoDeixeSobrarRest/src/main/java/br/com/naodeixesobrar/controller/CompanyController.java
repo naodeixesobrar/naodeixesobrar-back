@@ -15,8 +15,13 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
 import br.com.naodeixesobrar.api.CompanyApi;
+import br.com.naodeixesobrar.api.UserApi;
 import br.com.naodeixesobrar.entity.CompanyEntity;
+import br.com.naodeixesobrar.entity.CompanyUserEntity;
+import br.com.naodeixesobrar.entity.CompanyUserPKEntity;
+import br.com.naodeixesobrar.entity.UserEntity;
 import br.com.naodeixesobrar.repository.CompanyRepository;
+import br.com.naodeixesobrar.repository.CompanyUserRepository;
 import br.com.naodeixesobrar.util.JsonUtil;
  
  
@@ -28,7 +33,8 @@ import br.com.naodeixesobrar.util.JsonUtil;
 @Path("/company")
 public class CompanyController {
  
-	private final CompanyRepository repository = new CompanyRepository();
+	private final CompanyRepository companyRepository = new CompanyRepository();
+	private final CompanyUserRepository companyUserRepository = new CompanyUserRepository();
  
 	/**
 	 * @Consumes - determina o formato dos dados que vamos postar
@@ -54,7 +60,7 @@ public class CompanyController {
 			entity.setEmail(company.getEmail());
 			entity.setPhone(company.getPhone());
 
-			repository.save(entity);
+			companyRepository.save(entity);
 	        return Response.status(Response.Status.CREATED).entity(
 	        		JsonUtil.getJsonMessageReturn("Empresa cadastrada com sucesso")).build();
 		} catch (Exception e) {
@@ -70,7 +76,7 @@ public class CompanyController {
 	@Produces("application/text; charset=UTF-8")
 	@Consumes("application/json; charset=UTF-8")	
 	public Response edit(CompanyApi company){
-		CompanyEntity entity = repository.getCompany(company.getId());
+		CompanyEntity entity = companyRepository.getCompany(company.getId());
 		try {
 			if (entity == null)
 		        return Response.status(Response.Status.NOT_FOUND).entity(
@@ -87,7 +93,7 @@ public class CompanyController {
 			entity.setEmail(company.getEmail());
 			entity.setPhone(company.getPhone());
 
-			repository.edit(entity);
+			companyRepository.edit(entity);
 	        return Response.status(Response.Status.OK).entity(
 	        		JsonUtil.getJsonMessageReturn("Empresa alterada com sucesso")).build();
 		} catch (Exception e) {
@@ -104,7 +110,7 @@ public class CompanyController {
 	@Path("/all")
 	public List<CompanyApi> all(){
 		List<CompanyApi> companies =  new ArrayList<CompanyApi>();
-		List<CompanyEntity> listEntityCompanys = repository.all();
+		List<CompanyEntity> listEntityCompanys = companyRepository.all();
 		for (CompanyEntity entity : listEntityCompanys) {
 			companies.add(new CompanyApi(entity.getId(), entity.getName(),entity.getCpfcnpj(),entity.getZipcode(),
 					entity.getAdress(), entity.getNumberadress(), entity.getComplement(), entity.getDistrict(),
@@ -120,7 +126,7 @@ public class CompanyController {
 	@Produces("application/json; charset=UTF-8")
 	@Path("/{id}")
 	public Response getCompany(@PathParam("id") Integer id){
-		CompanyEntity entity = repository.getCompany(id);
+		CompanyEntity entity = companyRepository.getCompany(id);
 		if(entity != null) {
 	        return Response.ok().entity(new CompanyApi(entity.getId(), entity.getName(),entity.getCpfcnpj(),entity.getZipcode(),
 					entity.getAdress(), entity.getNumberadress(), entity.getComplement(), entity.getDistrict(),
@@ -139,7 +145,7 @@ public class CompanyController {
 	@Path("/{id}")	
 	public Response remove(@PathParam("id") Integer id){
 		try {
-			repository.remove(id);
+			companyRepository.remove(id);
 	        return Response.status(Response.Status.OK).entity(
 	        		JsonUtil.getJsonMessageReturn("Empresa excluída com sucesso")).build();
 		} catch (NullPointerException e) {
@@ -149,6 +155,58 @@ public class CompanyController {
 	        return Response.status(Response.Status.BAD_REQUEST).entity(
 	        		JsonUtil.getJsonMessageReturn("Erro ao excluir a empresa: " + e.getMessage())).build();
 		}
+	}
+	
+	@PUT
+	@Produces("application/text; charset=UTF-8")
+	@Path("/{id}/addUser/{userId}")	
+	public Response addCompanyUser(@PathParam("id") Integer id, @PathParam("userId") Integer userId){
+		CompanyUserEntity companyUserEntity = new CompanyUserEntity();
+		try {
+			CompanyUserPKEntity companyUserPKEntity = new CompanyUserPKEntity();
+			companyUserPKEntity.setCompanyId(id);
+			companyUserPKEntity.setUserId(userId);
+			companyUserEntity.setCompanyUserPK(companyUserPKEntity);
+			companyUserRepository.save(companyUserEntity);
+	        return Response.status(Response.Status.OK).entity(
+	        		JsonUtil.getJsonMessageReturn("Usuário associado com sucesso")).build();
+		} catch (Exception e) {
+	        return Response.status(Response.Status.BAD_REQUEST).entity(
+	        		JsonUtil.getJsonMessageReturn("Erro ao associar o usuário: " + e.getMessage())).build();
+		}
+	}
+
+	@DELETE
+	@Produces("application/text; charset=UTF-8")
+	@Path("/{id}/removeUser/{userId}")	
+	public Response removeCompanyUser(@PathParam("id") Integer id, @PathParam("userId") Integer userId){
+		CompanyUserEntity companyUserEntity = companyUserRepository.getCompanyUser(id, userId);
+		try {
+			if (companyUserEntity == null)
+		        return Response.status(Response.Status.NOT_FOUND).entity(
+		        		JsonUtil.getJsonMessageReturn("Associação Empresa/Usuário inexistente")).build();
+			companyUserRepository.remove(companyUserEntity);
+	        return Response.status(Response.Status.OK).entity(
+	        		JsonUtil.getJsonMessageReturn("Usuário dissociado com sucesso")).build();
+		} catch (Exception e) {
+	        return Response.status(Response.Status.BAD_REQUEST).entity(
+	        		JsonUtil.getJsonMessageReturn("Erro ao dissociar o usuário: " + e.getMessage())).build();
+		}
+	}
+
+	/**
+	 * Esse método lista os usuários vinculados a empresa
+	 * */
+	@GET
+	@Produces("application/json; charset=UTF-8")
+	@Path("/{id}/allusers")
+	public List<UserApi> allUsers(@PathParam("id") Integer id){
+		List<UserApi> users =  new ArrayList<UserApi>();
+		List<UserEntity> listEntityUsers = companyUserRepository.allUsers(id);
+		for (UserEntity entity : listEntityUsers) {
+			users.add(new UserApi(entity.getId(), entity.getUsername()));
+		}
+		return users;
 	}
 
 }
